@@ -17,7 +17,7 @@
     }
 
     .container{
-      max-width:700px;
+      max-width:800px;
       margin:auto;
       background:white;
       padding:24px;
@@ -27,17 +27,17 @@
 
     h1{
       text-align:center;
-      margin-bottom:20px;
     }
 
     textarea{
       width:100%;
       height:120px;
-      font-size:18px;
       padding:12px;
+      font-size:18px;
       border-radius:10px;
       border:1px solid #ccc;
       box-sizing:border-box;
+      margin-top:10px;
     }
 
     button{
@@ -60,6 +60,11 @@
       color:white;
     }
 
+    .next-btn{
+      background:#8b5cf6;
+      color:white;
+    }
+
     .result-box{
       margin-top:25px;
       padding:18px;
@@ -69,7 +74,7 @@
     }
 
     .score{
-      font-size:34px;
+      font-size:38px;
       font-weight:bold;
     }
 
@@ -78,11 +83,24 @@
       color:#666;
     }
 
-    .tips{
-      margin-top:25px;
+    .feedback{
+      margin-top:20px;
+      background:#eef2ff;
       padding:16px;
-      background:#fef3c7;
       border-radius:10px;
+    }
+
+    select{
+      padding:10px;
+      font-size:16px;
+      border-radius:8px;
+      margin-top:10px;
+    }
+
+    .sentence-number{
+      margin-top:15px;
+      font-weight:bold;
+      color:#555;
     }
 
   </style>
@@ -94,11 +112,29 @@
 
   <h1>英語 発音練習アプリ</h1>
 
-  <p>練習したい英文を入力してください。</p>
+  <h3>レベル選択</h3>
 
-  <textarea id="text">
-I want to improve my English pronunciation.
-  </textarea>
+  <select id="level" onchange="changeLevel()">
+
+    <option value="beginner">
+      初級
+    </option>
+
+    <option value="intermediate">
+      中級
+    </option>
+
+    <option value="advanced">
+      上級
+    </option>
+
+  </select>
+
+  <div class="sentence-number" id="sentenceNumber">
+    1 / 5
+  </div>
+
+  <textarea id="text"></textarea>
 
   <br>
 
@@ -108,6 +144,10 @@ I want to improve my English pronunciation.
 
   <button class="record-btn" onclick="startRecognition()">
     発音して採点する
+  </button>
+
+  <button class="next-btn" onclick="nextSentence()">
+    次の英文
   </button>
 
   <div class="result-box">
@@ -130,16 +170,13 @@ I want to improve my English pronunciation.
 
   </div>
 
-  <div class="tips">
+  <div class="feedback">
 
-    <h3>使い方</h3>
+    <h3>改善アドバイス</h3>
 
-    <ul>
-      <li>最初に「ネイティブ音声を聞く」を押してください</li>
-      <li>その後「発音して採点する」を押します</li>
-      <li>マイク許可は「許可」を押してください</li>
-      <li>Chrome推奨です</li>
-    </ul>
+    <div id="feedbackText">
+      発音後に改善ポイントが表示されます
+    </div>
 
   </div>
 
@@ -147,10 +184,105 @@ I want to improve my English pronunciation.
 
 <script>
 
+const beginnerSentences = [
+
+  "I like basketball.",
+  "This is my family.",
+  "I study English every day.",
+  "Can you help me?",
+  "I want to travel abroad."
+
+];
+
+const intermediateSentences = [
+
+  "I want to improve my English pronunciation.",
+  "Technology is changing our daily lives rapidly.",
+  "Many people struggle to balance work and family life.",
+  "Learning a foreign language requires consistent practice.",
+  "Climate change is becoming a serious global issue."
+
+];
+
+const advancedSentences = [
+
+  "Artificial intelligence is transforming modern society.",
+  "Public policy should address economic inequality effectively.",
+  "International cooperation is essential for global stability.",
+  "Many governments face challenges regarding aging populations.",
+  "Critical thinking skills are increasingly important nowadays."
+
+];
+
+let currentLevel = "beginner";
+
+let currentIndex = 0;
+
+function getCurrentSentences(){
+
+  if(currentLevel === "beginner"){
+    return beginnerSentences;
+  }
+
+  if(currentLevel === "intermediate"){
+    return intermediateSentences;
+  }
+
+  return advancedSentences;
+}
+
+function loadSentence(){
+
+  const sentences =
+    getCurrentSentences();
+
+  document.getElementById("text").value =
+    sentences[currentIndex];
+
+  document.getElementById("sentenceNumber").innerText =
+    (currentIndex + 1) + " / " + sentences.length;
+
+  document.getElementById("result").innerText =
+    "まだ録音されていません";
+
+  document.getElementById("score").innerText =
+    "0%";
+
+  document.getElementById("feedbackText").innerText =
+    "発音後に改善ポイントが表示されます";
+}
+
+function changeLevel(){
+
+  currentLevel =
+    document.getElementById("level").value;
+
+  currentIndex = 0;
+
+  loadSentence();
+}
+
+function nextSentence(){
+
+  const sentences =
+    getCurrentSentences();
+
+  currentIndex++;
+
+  if(currentIndex >= sentences.length){
+
+    currentIndex = 0;
+
+    alert("全ての英文を練習しました！");
+  }
+
+  loadSentence();
+}
+
 function speakText(){
 
   const text =
-    document.getElementById("text").value.trim();
+    document.getElementById("text").value;
 
   speechSynthesis.cancel();
 
@@ -193,16 +325,44 @@ function calculateSimilarity(original, spoken){
   );
 }
 
+function generateFeedback(original, spoken){
+
+  original =
+    original.toLowerCase();
+
+  spoken =
+    spoken.toLowerCase();
+
+  const originalWords =
+    original.split(/\s+/);
+
+  const spokenWords =
+    spoken.split(/\s+/);
+
+  let missingWords = [];
+
+  originalWords.forEach(word=>{
+
+    if(!spokenWords.includes(word)){
+
+      missingWords.push(word);
+    }
+
+  });
+
+  if(missingWords.length === 0){
+
+    return "素晴らしい発音です！リズムと流暢さをさらに意識しましょう。";
+  }
+
+  return (
+    "次の単語をよりはっきり発音してみましょう: " +
+    missingWords.join(", ") +
+    "。単語ごとのアクセントも意識してください。"
+  );
+}
+
 function startRecognition(){
-
-  const status =
-    document.getElementById("status");
-
-  const result =
-    document.getElementById("result");
-
-  const score =
-    document.getElementById("score");
 
   const SpeechRecognition =
     window.SpeechRecognition ||
@@ -217,10 +377,25 @@ function startRecognition(){
     return;
   }
 
-  speechSynthesis.cancel();
+  const result =
+    document.getElementById("result");
 
-  result.innerText = "録音準備中...";
-  status.innerText = "マイク起動中";
+  const score =
+    document.getElementById("score");
+
+  const status =
+    document.getElementById("status");
+
+  const feedback =
+    document.getElementById("feedbackText");
+
+  result.innerText =
+    "録音中...";
+
+  status.innerText =
+    "録音中";
+
+  speechSynthesis.cancel();
 
   const recognition =
     new SpeechRecognition();
@@ -233,14 +408,7 @@ function startRecognition(){
 
   recognition.maxAlternatives = 1;
 
-  recognition.onstart = function(){
-
-    result.innerText =
-      "録音中... 英語を話してください";
-
-    status.innerText =
-      "録音中";
-  };
+  recognition.start();
 
   recognition.onresult = function(event){
 
@@ -264,6 +432,24 @@ function startRecognition(){
 
     status.innerText =
       "採点完了";
+
+    feedback.innerText =
+      generateFeedback(
+        targetText,
+        spokenText
+      );
+
+    if(similarity >= 85){
+
+      status.innerText =
+        "85%以上達成！次の英文へ進みます";
+
+      setTimeout(()=>{
+
+        nextSentence();
+
+      }, 2000);
+    }
   };
 
   recognition.onerror = function(event){
@@ -273,10 +459,7 @@ function startRecognition(){
     if(event.error === "aborted"){
 
       result.innerText =
-        "音声認識が中断されました。もう一度押してください。";
-
-      status.innerText =
-        "中断";
+        "音声認識が中断されました。もう一度試してください。";
 
       return;
     }
@@ -284,10 +467,7 @@ function startRecognition(){
     if(event.error === "not-allowed"){
 
       result.innerText =
-        "マイクが許可されていません。ブラウザ設定から許可してください。";
-
-      status.innerText =
-        "マイク拒否";
+        "マイク許可が必要です。";
 
       return;
     }
@@ -297,41 +477,18 @@ function startRecognition(){
       result.innerText =
         "音声が検出されませんでした。";
 
-      status.innerText =
-        "無音";
-
       return;
     }
 
     result.innerText =
       "エラー: " + event.error;
-
-    status.innerText =
-      "エラー";
   };
-
-  recognition.onend = function(){
-
-    console.log("recognition end");
-  };
-
-  try{
-
-    recognition.start();
-
-  }catch(e){
-
-    console.log(e);
-
-    result.innerText =
-      "起動エラー";
-
-    status.innerText =
-      "失敗";
-  }
 }
+
+loadSentence();
 
 </script>
 
 </body>
+
 </html>
