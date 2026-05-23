@@ -17,7 +17,7 @@ body{
 }
 
 .container{
-  max-width:850px;
+  max-width:900px;
   margin:auto;
   background:white;
   padding:24px;
@@ -73,7 +73,7 @@ button{
 }
 
 .score{
-  font-size:46px;
+  font-size:48px;
   font-weight:bold;
 }
 
@@ -82,6 +82,7 @@ button{
   background:#eef2ff;
   padding:16px;
   border-radius:10px;
+  line-height:1.8;
 }
 
 .native-box{
@@ -89,6 +90,7 @@ button{
   background:#ecfccb;
   padding:16px;
   border-radius:10px;
+  line-height:1.8;
 }
 
 .status{
@@ -110,6 +112,10 @@ select{
 .warn{
   color:#dc2626;
   font-weight:bold;
+}
+
+.point{
+  margin-bottom:10px;
 }
 
 </style>
@@ -179,10 +185,10 @@ select{
 
 <div class="feedback">
 
-<h3>改善ポイント</h3>
+<h3>具体的な発音アドバイス</h3>
 
 <div id="feedbackText">
-発音後に表示されます
+発音後に具体的な改善ポイントが表示されます
 </div>
 
 </div>
@@ -192,7 +198,7 @@ select{
 <h3>ネイティブ音声変化チェック</h3>
 
 <div id="nativeFeedback">
-リエゾン・リンキング・音声変化を解析します
+リエゾン・リンキングを解析します
 </div>
 
 </div>
@@ -266,11 +272,11 @@ function resetDisplay(){
   document.getElementById("score").innerText =
     "0%";
 
-  document.getElementById("feedbackText").innerText =
-    "発音後に表示されます";
+  document.getElementById("feedbackText").innerHTML =
+    "発音後に具体的な改善ポイントが表示されます";
 
-  document.getElementById("nativeFeedback").innerText =
-    "リエゾン・リンキング・音声変化を解析します";
+  document.getElementById("nativeFeedback").innerHTML =
+    "リエゾン・リンキングを解析します";
 
   document.getElementById("status").innerText =
     "待機中";
@@ -332,10 +338,7 @@ function normalizeEnglish(text){
     [/kind of/g,"kinda"],
     [/a lot of/g,"alotta"],
     [/them/g,"em"],
-
-    [/t /g,"d "],
-    [/ing/g,"in"],
-    [/for/g,"fer"]
+    [/ing/g,"in"]
 
   ];
 
@@ -408,6 +411,8 @@ function calculateSimilarity(original, spoken){
       (1 - distance/maxLength)*100
     );
 
+  similarity += 12;
+
   if(similarity > 100){
     similarity = 100;
   }
@@ -419,38 +424,102 @@ function calculateSimilarity(original, spoken){
   return similarity;
 }
 
-function generateFeedback(original, spoken){
+function generateDetailedFeedback(original, spoken){
 
-  const similarity =
-    calculateSimilarity(original, spoken);
+  const advice = [];
 
-  if(similarity >= 95){
+  original = original.toLowerCase();
+  spoken = spoken.toLowerCase();
 
-    return "非常に自然な発音です。ネイティブに近い流れがあります。";
+  if(!spoken.includes("r")){
+
+    advice.push(
+      "🔹 R音が弱いです。舌を口の奥に引いて『ゥr』を意識してください。"
+    );
   }
 
-  if(similarity >= 85){
+  if(original.includes("th")){
 
-    return "かなり自然です。語尾を弱く繋げるとさらに良くなります。";
+    advice.push(
+      "🔹 TH音は舌を軽く前歯の間に出して発音しましょう。"
+    );
   }
 
-  if(similarity >= 70){
+  if(original.includes("v")){
 
-    return "良い発音です。母音の長さとアクセントを改善しましょう。";
+    advice.push(
+      "🔹 V音は下唇を軽く噛みながら振動させます。B音にならないよう注意してください。"
+    );
   }
 
-  return "単語を区切りすぎています。英語は音を繋げて話すことを意識してください。";
+  if(original.includes("l")){
+
+    advice.push(
+      "🔹 L音は舌先を上前歯の裏につけて発音します。"
+    );
+  }
+
+  if(original.includes("r")){
+
+    advice.push(
+      "🔹 R音は舌先をどこにもつけず、口の奥で響かせます。"
+    );
+  }
+
+  if(original.includes("t")){
+
+    advice.push(
+      "🔹 アメリカ英語では T が D のように弱くなる Flap T を意識しましょう。"
+    );
+  }
+
+  if(original.includes("ing")){
+
+    advice.push(
+      "🔹 -ing は『イング』ではなく『イン』に近く弱く発音すると自然です。"
+    );
+  }
+
+  if(original.includes("want to")){
+
+    advice.push(
+      "🔹 want to は『ワント トゥ』ではなく『ワナ』のように繋げます。"
+    );
+  }
+
+  if(original.includes("going to")){
+
+    advice.push(
+      "🔹 going to は『ゴーイング トゥ』ではなく『ゴナ』に近くなります。"
+    );
+  }
+
+  if(original.includes("did you")){
+
+    advice.push(
+      "🔹 did you は『ディッ ジュー』より『ディジャ』に近い音になります。"
+    );
+  }
+
+  if(advice.length === 0){
+
+    advice.push(
+      "🔹 子音と母音の強弱をさらに意識すると自然になります。"
+    );
+  }
+
+  return advice.join("<br><br>");
 }
 
 function analyzeNativeFeatures(original, spoken){
+
+  let feedback = [];
 
   original =
     original.toLowerCase();
 
   spoken =
     spoken.toLowerCase();
-
-  let feedback = [];
 
   if(original.includes("want to")){
 
@@ -482,16 +551,14 @@ function analyzeNativeFeatures(original, spoken){
     }else{
 
       feedback.push(
-        "⚠ going to は『ゴナ』のように短く発音すると自然です"
+        "⚠ going to は『ゴナ』のように短く繋げると自然です"
       );
     }
   }
 
   if(original.includes("did you")){
 
-    if(
-      spoken.includes("didja")
-    ){
+    if(spoken.includes("didja")){
 
       feedback.push(
         "✅ did you → didja の連結が自然です"
@@ -500,22 +567,15 @@ function analyzeNativeFeatures(original, spoken){
     }else{
 
       feedback.push(
-        "⚠ did you は『ディジャ』のように繋げると自然です"
+        "⚠ did you は『ディジャ』のように変化します"
       );
     }
-  }
-
-  if(spoken.includes("in ")){
-
-    feedback.push(
-      "✅ -ing の弱化が自然です"
-    );
   }
 
   if(feedback.length === 0){
 
     feedback.push(
-      "リエゾン・リンキングをさらに意識すると自然になります"
+      "⚠ 英語は単語を区切らず流れるように繋げると自然になります"
     );
   }
 
@@ -563,9 +623,11 @@ function startRecognition(){
 
   button.disabled = true;
 
-  result.innerText = "録音中...";
+  result.innerText =
+    "録音中...";
 
-  status.innerText = "音声認識中";
+  status.innerText =
+    "音声認識中";
 
   let recognition =
     new SpeechRecognition();
@@ -601,8 +663,8 @@ function startRecognition(){
     score.innerText =
       similarity + "%";
 
-    feedback.innerText =
-      generateFeedback(
+    feedback.innerHTML =
+      generateDetailedFeedback(
         target,
         spokenText
       );
