@@ -1,132 +1,184 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pronunciation App</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>English Pronunciation Practice</title>
 
-<style>
-body{
-  font-family:Arial;
-  padding:20px;
-  background:#f3f4f6;
-}
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 20px;
+    }
 
-.container{
-  max-width:600px;
-  margin:auto;
-  background:white;
-  padding:20px;
-  border-radius:10px;
-}
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
 
-textarea{
-  width:100%;
-  height:100px;
-  font-size:16px;
-}
+    h1 {
+      text-align: center;
+      color: #111827;
+    }
 
-button{
-  margin-top:10px;
-  padding:10px 15px;
-  font-size:16px;
-}
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 12px;
+      font-size: 16px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
 
-#score{
-  font-size:30px;
-  font-weight:bold;
-}
-</style>
+    button {
+      padding: 12px 18px;
+      margin-top: 12px;
+      margin-right: 8px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
 
+    .listen-btn {
+      background: #10b981;
+      color: white;
+    }
+
+    .record-btn {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .result-box {
+      margin-top: 24px;
+      background: #f9fafb;
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+    }
+
+    .score {
+      font-size: 28px;
+      font-weight: bold;
+      color: #111827;
+    }
+
+    .tips {
+      margin-top: 24px;
+      background: #fef3c7;
+      padding: 16px;
+      border-radius: 10px;
+    }
+
+    ul {
+      margin-bottom: 0;
+    }
+  </style>
 </head>
 
 <body>
 
 <div class="container">
 
-<h1>英語発音練習</h1>
+  <h1>英語 発音練習アプリ</h1>
 
-<textarea id="text">
-I want to improve my English pronunciation.
-</textarea>
+  <p>練習したい英文を入力してください。</p>
 
-<br>
+  <textarea id="targetText">I want to improve my English pronunciation.</textarea>
 
-<button onclick="speakText()">
-音声を聞く
-</button>
+  <br>
 
-<button onclick="startRecognition()">
-発音して採点
-</button>
+  <button class="listen-btn" onclick="playSentence()">
+    ネイティブ音声を聞く
+  </button>
 
-<h3>認識結果</h3>
+  <button class="record-btn" onclick="startRecognition()">
+    発音して採点する
+  </button>
 
-<p id="result">
-まだ録音されていません
-</p>
+  <div class="result-box">
 
-<h3>スコア</h3>
+    <h3>認識された英文</h3>
 
-<div id="score">
-0%
-</div>
+    <p id="recognizedText">
+      まだ録音されていません
+    </p>
+
+    <h3>一致率</h3>
+
+    <div class="score">
+      <span id="score">0</span>%
+    </div>
+
+  </div>
+
+  <div class="tips">
+    <h3>練習のコツ</h3>
+
+    <ul>
+      <li>ネイティブ音声を真似する</li>
+      <li>音のつながり（リエゾン）を意識する</li>
+      <li>何度も録音して比較する</li>
+    </ul>
+  </div>
 
 </div>
 
 <script>
 
-function speakText(){
+function playSentence() {
 
-  const text =
-    document.getElementById("text").value;
+  const text = document.getElementById("targetText").value;
 
-  const utterance =
-    new SpeechSynthesisUtterance(text);
+  const utterance = new SpeechSynthesisUtterance(text);
 
   utterance.lang = "en-US";
 
   speechSynthesis.speak(utterance);
 }
 
-function similarity(a,b){
+function calculateSimilarity(original, spoken) {
 
-  a = a.toLowerCase();
-  b = b.toLowerCase();
+  original = original.toLowerCase().trim();
+  spoken = spoken.toLowerCase().trim();
 
-  const aWords = a.split(" ");
-  const bWords = b.split(" ");
+  const originalWords = original.split(/\s+/);
+  const spokenWords = spoken.split(/\s+/);
 
-  let match = 0;
+  let matchCount = 0;
 
-  aWords.forEach(word=>{
-
-    if(bWords.includes(word)){
-      match++;
+  originalWords.forEach(word => {
+    if (spokenWords.includes(word)) {
+      matchCount++;
     }
-
   });
 
-  return Math.round(
-    (match / aWords.length) * 100
-  );
+  return Math.round((matchCount / originalWords.length) * 100);
 }
 
-function startRecognition(){
+function startRecognition() {
 
   const SpeechRecognition =
     window.SpeechRecognition ||
     window.webkitSpeechRecognition;
 
-  if(!SpeechRecognition){
+  if (!SpeechRecognition) {
 
-    alert("このブラウザは未対応です");
+    alert("このブラウザは音声認識に対応していません。Chrome推奨です。");
 
     return;
   }
 
-  const recognition =
-    new SpeechRecognition();
+  const recognition = new SpeechRecognition();
 
   recognition.lang = "en-US";
 
@@ -134,33 +186,26 @@ function startRecognition(){
 
   recognition.maxAlternatives = 1;
 
-  document.getElementById("result").innerText =
-    "録音中...";
-
   recognition.start();
 
-  recognition.onresult = function(event){
+  recognition.onresult = function(event) {
 
-    const spoken =
-      event.results[0][0].transcript;
+    const spokenText = event.results[0][0].transcript;
 
-    document.getElementById("result").innerText =
-      spoken;
+    document.getElementById("recognizedText").innerText = spokenText;
 
-    const target =
-      document.getElementById("text").value;
+    const targetText =
+      document.getElementById("targetText").value;
 
-    const score =
-      similarity(target, spoken);
+    const similarity =
+      calculateSimilarity(targetText, spokenText);
 
-    document.getElementById("score").innerText =
-      score + "%";
+    document.getElementById("score").innerText = similarity;
   };
 
-  recognition.onerror = function(event){
+  recognition.onerror = function(event) {
 
-    document.getElementById("result").innerText =
-      "エラー: " + event.error;
+    alert("エラー: " + event.error);
   };
 }
 
