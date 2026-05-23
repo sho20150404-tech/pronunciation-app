@@ -1,70 +1,272 @@
-function startRecognition() {
+<!DOCTYPE html>
+<html lang="ja">
 
-  const SpeechRecognition =
-    window.SpeechRecognition ||
-    window.webkitSpeechRecognition;
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  if (!SpeechRecognition) {
+  <title>英語 発音練習アプリ</title>
 
-    alert("このブラウザは音声認識に対応していません。Chrome推奨です。");
-
-    return;
-  }
-
-  const recognition = new SpeechRecognition();
-
-  recognition.lang = "en-US";
-
-  recognition.interimResults = false;
-
-  recognition.continuous = false;
-
-  recognition.maxAlternatives = 1;
-
-  recognition.onstart = function() {
-    console.log("音声認識開始");
-  };
-
-  recognition.onresult = function(event) {
-
-    const spokenText =
-      event.results[0][0].transcript;
-
-    document.getElementById("recognizedText").innerText =
-      spokenText;
-
-    const targetText =
-      document.getElementById("targetText").value;
-
-    const similarity =
-      calculateSimilarity(targetText, spokenText);
-
-    document.getElementById("score").innerText =
-      similarity;
-  };
-
-  recognition.onerror = function(event) {
-
-    console.log(event.error);
-
-    if (event.error === "aborted") {
-
-      document.getElementById("recognizedText").innerText =
-        "音声認識が中断されました。もう一度試してください。";
-
-      return;
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 20px;
     }
 
-    alert("エラー: " + event.error);
-  };
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
 
-  recognition.onend = function() {
-    console.log("音声認識終了");
-  };
+    h1 {
+      text-align: center;
+      color: #111827;
+    }
 
-  try {
-    recognition.start();
-  } catch (e) {
-    console.log(e);
-  }
-}
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      margin-top: 10px;
+    }
+
+    button {
+      padding: 12px 18px;
+      margin-top: 15px;
+      margin-right: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .listen-btn {
+      background: #10b981;
+      color: white;
+    }
+
+    .record-btn {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .result-box {
+      margin-top: 25px;
+      background: #f9fafb;
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+    }
+
+    .score {
+      font-size: 30px;
+      font-weight: bold;
+      color: #111827;
+    }
+
+    .tips {
+      margin-top: 24px;
+      background: #fef3c7;
+      padding: 16px;
+      border-radius: 10px;
+    }
+
+    ul {
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>英語 発音練習アプリ</h1>
+
+    <p>練習したい英文を入力してください。</p>
+
+    <textarea id="targetText">I want to improve my English pronunciation.</textarea>
+
+    <br>
+
+    <button class="listen-btn" onclick="playSentence()">
+      ネイティブ音声を聞く
+    </button>
+
+    <button class="record-btn" onclick="startRecognition()">
+      発音して採点する
+    </button>
+
+    <div class="result-box">
+
+      <h3>認識された英文</h3>
+
+      <p id="recognizedText">
+        まだ録音されていません
+      </p>
+
+      <h3>一致率</h3>
+
+      <div class="score">
+        <span id="score">0</span>%
+      </div>
+
+    </div>
+
+    <div class="tips">
+
+      <h3>練習のコツ</h3>
+
+      <ul>
+        <li>ネイティブ音声を真似する</li>
+        <li>リエゾン（音のつながり）を意識する</li>
+        <li>何度も録音して練習する</li>
+      </ul>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    function playSentence() {
+
+      const text =
+        document.getElementById("targetText").value;
+
+      const utterance =
+        new SpeechSynthesisUtterance(text);
+
+      utterance.lang = "en-US";
+
+      speechSynthesis.speak(utterance);
+    }
+
+    function calculateSimilarity(original, spoken) {
+
+      original = original.toLowerCase().trim();
+      spoken = spoken.toLowerCase().trim();
+
+      const originalWords = original.split(/\s+/);
+      const spokenWords = spoken.split(/\s+/);
+
+      let matchCount = 0;
+
+      originalWords.forEach(word => {
+
+        if (spokenWords.includes(word)) {
+          matchCount++;
+        }
+
+      });
+
+      return Math.round(
+        (matchCount / originalWords.length) * 100
+      );
+    }
+
+    function startRecognition() {
+
+      const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+
+        alert(
+          "このブラウザは音声認識に対応していません。Chrome推奨です。"
+        );
+
+        return;
+      }
+
+      const recognition =
+        new SpeechRecognition();
+
+      recognition.lang = "en-US";
+
+      recognition.interimResults = false;
+
+      recognition.continuous = false;
+
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = function () {
+
+        document.getElementById(
+          "recognizedText"
+        ).innerText = "録音中...";
+      };
+
+      recognition.onresult = function (event) {
+
+        const spokenText =
+          event.results[0][0].transcript;
+
+        document.getElementById(
+          "recognizedText"
+        ).innerText = spokenText;
+
+        const targetText =
+          document.getElementById(
+            "targetText"
+          ).value;
+
+        const similarity =
+          calculateSimilarity(
+            targetText,
+            spokenText
+          );
+
+        document.getElementById(
+          "score"
+        ).innerText = similarity;
+      };
+
+      recognition.onerror = function (event) {
+
+        console.log(event.error);
+
+        if (event.error === "aborted") {
+
+          document.getElementById(
+            "recognizedText"
+          ).innerText =
+            "音声認識が中断されました。もう一度試してください。";
+
+          return;
+        }
+
+        alert("エラー: " + event.error);
+      };
+
+      recognition.onend = function () {
+
+        console.log("音声認識終了");
+      };
+
+      try {
+
+        recognition.start();
+
+      } catch (e) {
+
+        console.log(e);
+      }
+    }
+
+  </script>
+
+</body>
+
+</html>
