@@ -17,7 +17,7 @@ body{
 }
 
 .container{
-  max-width:800px;
+  max-width:850px;
   margin:auto;
   background:white;
   padding:24px;
@@ -73,13 +73,20 @@ button{
 }
 
 .score{
-  font-size:42px;
+  font-size:46px;
   font-weight:bold;
 }
 
 .feedback{
   margin-top:20px;
   background:#eef2ff;
+  padding:16px;
+  border-radius:10px;
+}
+
+.native-box{
+  margin-top:20px;
+  background:#ecfccb;
   padding:16px;
   border-radius:10px;
 }
@@ -93,6 +100,16 @@ select{
   padding:10px;
   font-size:16px;
   border-radius:8px;
+}
+
+.good{
+  color:#16a34a;
+  font-weight:bold;
+}
+
+.warn{
+  color:#dc2626;
+  font-weight:bold;
 }
 
 </style>
@@ -142,7 +159,7 @@ select{
 
 <div class="result-box">
 
-<h3>認識された英文</h3>
+<h3>認識結果</h3>
 
 <p id="result">
 まだ録音されていません
@@ -166,6 +183,16 @@ select{
 
 <div id="feedbackText">
 発音後に表示されます
+</div>
+
+</div>
+
+<div class="native-box">
+
+<h3>ネイティブ音声変化チェック</h3>
+
+<div id="nativeFeedback">
+リエゾン・リンキング・音声変化を解析します
 </div>
 
 </div>
@@ -242,6 +269,9 @@ function resetDisplay(){
   document.getElementById("feedbackText").innerText =
     "発音後に表示されます";
 
+  document.getElementById("nativeFeedback").innerText =
+    "リエゾン・リンキング・音声変化を解析します";
+
   document.getElementById("status").innerText =
     "待機中";
 }
@@ -281,41 +311,138 @@ function speakText(){
 
   utterance.lang = "en-US";
 
-  utterance.rate = 0.95;
+  utterance.rate = 0.92;
 
   speechSynthesis.speak(utterance);
+}
+
+function normalizeEnglish(text){
+
+  text = text.toLowerCase();
+
+  const patterns = [
+
+    [/want to/g,"wanna"],
+    [/going to/g,"gonna"],
+    [/got to/g,"gotta"],
+    [/did you/g,"didja"],
+    [/would you/g,"wouldja"],
+    [/could you/g,"couldja"],
+    [/out of/g,"outta"],
+    [/kind of/g,"kinda"],
+    [/a lot of/g,"alotta"],
+    [/them/g,"em"],
+
+    [/t /g,"d "],
+    [/ing/g,"in"],
+    [/for/g,"fer"]
+
+  ];
+
+  patterns.forEach(p=>{
+
+    text = text.replace(p[0],p[1]);
+
+  });
+
+  return text;
+}
+
+function levenshtein(a,b){
+
+  const matrix=[];
+
+  for(let i=0;i<=b.length;i++){
+    matrix[i]=[i];
+  }
+
+  for(let j=0;j<=a.length;j++){
+    matrix[0][j]=j;
+  }
+
+  for(let i=1;i<=b.length;i++){
+
+    for(let j=1;j<=a.length;j++){
+
+      if(b.charAt(i-1)===a.charAt(j-1)){
+
+        matrix[i][j]=matrix[i-1][j-1];
+
+      }else{
+
+        matrix[i][j]=Math.min(
+          matrix[i-1][j-1]+1,
+          matrix[i][j-1]+1,
+          matrix[i-1][j]+1
+        );
+      }
+    }
+  }
+
+  return matrix[b.length][a.length];
 }
 
 function calculateSimilarity(original, spoken){
 
   original =
-    original.toLowerCase().trim();
+    normalizeEnglish(
+      original.toLowerCase().trim()
+    );
 
   spoken =
-    spoken.toLowerCase().trim();
+    normalizeEnglish(
+      spoken.toLowerCase().trim()
+    );
 
-  const originalWords =
-    original.split(/\s+/);
+  const distance =
+    levenshtein(original,spoken);
 
-  const spokenWords =
-    spoken.split(/\s+/);
+  const maxLength =
+    Math.max(
+      original.length,
+      spoken.length
+    );
 
-  let match = 0;
+  let similarity =
+    Math.round(
+      (1 - distance/maxLength)*100
+    );
 
-  originalWords.forEach(word=>{
+  if(similarity > 100){
+    similarity = 100;
+  }
 
-    if(spokenWords.includes(word)){
-      match++;
-    }
+  if(similarity < 0){
+    similarity = 0;
+  }
 
-  });
-
-  return Math.round(
-    (match / originalWords.length) * 100
-  );
+  return similarity;
 }
 
 function generateFeedback(original, spoken){
+
+  const similarity =
+    calculateSimilarity(original, spoken);
+
+  if(similarity >= 95){
+
+    return "非常に自然な発音です。ネイティブに近い流れがあります。";
+  }
+
+  if(similarity >= 85){
+
+    return "かなり自然です。語尾を弱く繋げるとさらに良くなります。";
+  }
+
+  if(similarity >= 70){
+
+    return "良い発音です。母音の長さとアクセントを改善しましょう。";
+  }
+
+  return "単語を区切りすぎています。英語は音を繋げて話すことを意識してください。";
+}
+
+function analyzeNativeFeatures(original, spoken){
 
   original =
     original.toLowerCase();
@@ -323,30 +450,76 @@ function generateFeedback(original, spoken){
   spoken =
     spoken.toLowerCase();
 
-  const originalWords =
-    original.split(/\s+/);
+  let feedback = [];
 
-  const spokenWords =
-    spoken.split(/\s+/);
+  if(original.includes("want to")){
 
-  let missing = [];
+    if(
+      spoken.includes("wanna") ||
+      spoken.includes("wana")
+    ){
 
-  originalWords.forEach(word=>{
+      feedback.push(
+        "✅ want to → wanna のリンキングが自然です"
+      );
 
-    if(!spokenWords.includes(word)){
-      missing.push(word);
+    }else{
+
+      feedback.push(
+        "⚠ want to は『ワナ』のように繋げると自然になります"
+      );
     }
-
-  });
-
-  if(missing.length === 0){
-
-    return "素晴らしい発音です。";
-
   }
 
-  return "改善推奨単語: " +
-    missing.join(", ");
+  if(original.includes("going to")){
+
+    if(spoken.includes("gonna")){
+
+      feedback.push(
+        "✅ going to → gonna の音声変化が自然です"
+      );
+
+    }else{
+
+      feedback.push(
+        "⚠ going to は『ゴナ』のように短く発音すると自然です"
+      );
+    }
+  }
+
+  if(original.includes("did you")){
+
+    if(
+      spoken.includes("didja")
+    ){
+
+      feedback.push(
+        "✅ did you → didja の連結が自然です"
+      );
+
+    }else{
+
+      feedback.push(
+        "⚠ did you は『ディジャ』のように繋げると自然です"
+      );
+    }
+  }
+
+  if(spoken.includes("in ")){
+
+    feedback.push(
+      "✅ -ing の弱化が自然です"
+    );
+  }
+
+  if(feedback.length === 0){
+
+    feedback.push(
+      "リエゾン・リンキングをさらに意識すると自然になります"
+    );
+  }
+
+  return feedback.join("<br><br>");
 }
 
 function startRecognition(){
@@ -379,6 +552,9 @@ function startRecognition(){
   const feedback =
     document.getElementById("feedbackText");
 
+  const nativeFeedback =
+    document.getElementById("nativeFeedback");
+
   const status =
     document.getElementById("status");
 
@@ -387,11 +563,9 @@ function startRecognition(){
 
   button.disabled = true;
 
-  result.innerText =
-    "録音中...";
+  result.innerText = "録音中...";
 
-  status.innerText =
-    "音声認識中";
+  status.innerText = "音声認識中";
 
   let recognition =
     new SpeechRecognition();
@@ -406,11 +580,11 @@ function startRecognition(){
 
   recognition.onresult = function(event){
 
-    const latestIndex =
+    const latest =
       event.results.length - 1;
 
     const spokenText =
-      event.results[latestIndex][0].transcript;
+      event.results[latest][0].transcript;
 
     result.innerText =
       spokenText;
@@ -433,13 +607,19 @@ function startRecognition(){
         spokenText
       );
 
+    nativeFeedback.innerHTML =
+      analyzeNativeFeatures(
+        target,
+        spokenText
+      );
+
     status.innerText =
       "採点完了";
 
     if(similarity >= 85){
 
       status.innerText =
-        "85%以上達成";
+        "85%以上達成！";
 
       setTimeout(()=>{
 
