@@ -2,183 +2,173 @@
 <html lang="ja">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>英語 発音練習アプリ</title>
+<title>英語 発音練習アプリ</title>
 
-  <style>
+<style>
 
-    body{
-      font-family: Arial, sans-serif;
-      background:#f3f4f6;
-      margin:0;
-      padding:20px;
-    }
+body{
+  font-family:Arial,sans-serif;
+  background:#f3f4f6;
+  margin:0;
+  padding:20px;
+}
 
-    .container{
-      max-width:800px;
-      margin:auto;
-      background:white;
-      padding:24px;
-      border-radius:16px;
-      box-shadow:0 4px 12px rgba(0,0,0,0.1);
-    }
+.container{
+  max-width:800px;
+  margin:auto;
+  background:white;
+  padding:24px;
+  border-radius:16px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
 
-    h1{
-      text-align:center;
-    }
+h1{
+  text-align:center;
+}
 
-    textarea{
-      width:100%;
-      height:120px;
-      padding:12px;
-      font-size:18px;
-      border-radius:10px;
-      border:1px solid #ccc;
-      box-sizing:border-box;
-      margin-top:10px;
-    }
+textarea{
+  width:100%;
+  height:120px;
+  padding:12px;
+  font-size:18px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  box-sizing:border-box;
+}
 
-    button{
-      margin-top:15px;
-      margin-right:10px;
-      padding:12px 18px;
-      font-size:16px;
-      border:none;
-      border-radius:10px;
-      cursor:pointer;
-    }
+button{
+  margin-top:15px;
+  margin-right:10px;
+  padding:12px 18px;
+  font-size:16px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+}
 
-    .listen-btn{
-      background:#10b981;
-      color:white;
-    }
+.listen-btn{
+  background:#10b981;
+  color:white;
+}
 
-    .record-btn{
-      background:#3b82f6;
-      color:white;
-    }
+.record-btn{
+  background:#3b82f6;
+  color:white;
+}
 
-    .next-btn{
-      background:#8b5cf6;
-      color:white;
-    }
+.next-btn{
+  background:#8b5cf6;
+  color:white;
+}
 
-    .result-box{
-      margin-top:25px;
-      padding:18px;
-      background:#f9fafb;
-      border-radius:10px;
-      border:1px solid #ddd;
-    }
+.result-box{
+  margin-top:25px;
+  padding:18px;
+  background:#f9fafb;
+  border-radius:10px;
+  border:1px solid #ddd;
+}
 
-    .score{
-      font-size:38px;
-      font-weight:bold;
-    }
+.score{
+  font-size:40px;
+  font-weight:bold;
+}
 
-    .status{
-      margin-top:10px;
-      color:#666;
-    }
+.feedback{
+  margin-top:20px;
+  background:#eef2ff;
+  padding:16px;
+  border-radius:10px;
+}
 
-    .feedback{
-      margin-top:20px;
-      background:#eef2ff;
-      padding:16px;
-      border-radius:10px;
-    }
+.status{
+  margin-top:10px;
+  color:#666;
+}
 
-    select{
-      padding:10px;
-      font-size:16px;
-      border-radius:8px;
-      margin-top:10px;
-    }
+select{
+  padding:10px;
+  font-size:16px;
+  border-radius:8px;
+}
 
-    .sentence-number{
-      margin-top:15px;
-      font-weight:bold;
-      color:#555;
-    }
-
-  </style>
+</style>
 </head>
 
 <body>
 
 <div class="container">
 
-  <h1>英語 発音練習アプリ</h1>
+<h1>英語 発音練習アプリ</h1>
 
-  <h3>レベル選択</h3>
+<h3>レベル選択</h3>
 
-  <select id="level" onchange="changeLevel()">
+<select id="level" onchange="changeLevel()">
 
-    <option value="beginner">
-      初級
-    </option>
+<option value="beginner">
+初級
+</option>
 
-    <option value="intermediate">
-      中級
-    </option>
+<option value="intermediate">
+中級
+</option>
 
-    <option value="advanced">
-      上級
-    </option>
+<option value="advanced">
+上級
+</option>
 
-  </select>
+</select>
 
-  <div class="sentence-number" id="sentenceNumber">
-    1 / 5
-  </div>
+<h3>英文</h3>
 
-  <textarea id="text"></textarea>
+<textarea id="text"></textarea>
 
-  <br>
+<br>
 
-  <button class="listen-btn" onclick="speakText()">
-    ネイティブ音声を聞く
-  </button>
+<button class="listen-btn" onclick="speakText()">
+ネイティブ音声を聞く
+</button>
 
-  <button class="record-btn" onclick="startRecognition()">
-    発音して採点する
-  </button>
+<button class="record-btn" id="recordButton" onclick="startRecognition()">
+発音して採点する
+</button>
 
-  <button class="next-btn" onclick="nextSentence()">
-    次の英文
-  </button>
+<button class="next-btn" onclick="nextSentence()">
+次の英文
+</button>
 
-  <div class="result-box">
+<div class="result-box">
 
-    <h3>認識された英文</h3>
+<h3>認識結果</h3>
 
-    <p id="result">
-      まだ録音されていません
-    </p>
+<p id="result">
+まだ録音されていません
+</p>
 
-    <h3>一致率</h3>
+<h3>一致率</h3>
 
-    <div class="score" id="score">
-      0%
-    </div>
+<div class="score" id="score">
+0%
+</div>
 
-    <div class="status" id="status">
-      待機中
-    </div>
+<div class="status" id="status">
+待機中
+</div>
 
-  </div>
+</div>
 
-  <div class="feedback">
+<div class="feedback">
 
-    <h3>改善アドバイス</h3>
+<h3>改善ポイント</h3>
 
-    <div id="feedbackText">
-      発音後に改善ポイントが表示されます
-    </div>
+<div id="feedbackText">
+発音後に表示されます
+</div>
 
-  </div>
+</div>
 
 </div>
 
@@ -186,39 +176,40 @@
 
 const beginnerSentences = [
 
-  "I like basketball.",
-  "This is my family.",
-  "I study English every day.",
-  "Can you help me?",
-  "I want to travel abroad."
+"I like basketball.",
+"This is my family.",
+"I study English every day.",
+"Can you help me?",
+"I want to travel abroad."
 
 ];
 
 const intermediateSentences = [
 
-  "I want to improve my English pronunciation.",
-  "Technology is changing our daily lives rapidly.",
-  "Many people struggle to balance work and family life.",
-  "Learning a foreign language requires consistent practice.",
-  "Climate change is becoming a serious global issue."
+"I want to improve my English pronunciation.",
+"Technology is changing our daily lives rapidly.",
+"Learning English requires daily practice.",
+"Many people work from home nowadays.",
+"Climate change is a global issue."
 
 ];
 
 const advancedSentences = [
 
-  "Artificial intelligence is transforming modern society.",
-  "Public policy should address economic inequality effectively.",
-  "International cooperation is essential for global stability.",
-  "Many governments face challenges regarding aging populations.",
-  "Critical thinking skills are increasingly important nowadays."
+"Artificial intelligence is transforming modern society.",
+"Critical thinking skills are becoming increasingly important.",
+"International cooperation is essential for global stability.",
+"Economic inequality remains a serious political issue.",
+"Public policy should address long term social challenges."
 
 ];
 
 let currentLevel = "beginner";
-
 let currentIndex = 0;
 
-function getCurrentSentences(){
+let isRecognizing = false;
+
+function getSentences(){
 
   if(currentLevel === "beginner"){
     return beginnerSentences;
@@ -233,14 +224,10 @@ function getCurrentSentences(){
 
 function loadSentence(){
 
-  const sentences =
-    getCurrentSentences();
+  const sentences = getSentences();
 
   document.getElementById("text").value =
     sentences[currentIndex];
-
-  document.getElementById("sentenceNumber").innerText =
-    (currentIndex + 1) + " / " + sentences.length;
 
   document.getElementById("result").innerText =
     "まだ録音されていません";
@@ -249,7 +236,10 @@ function loadSentence(){
     "0%";
 
   document.getElementById("feedbackText").innerText =
-    "発音後に改善ポイントが表示されます";
+    "発音後に表示されます";
+
+  document.getElementById("status").innerText =
+    "待機中";
 }
 
 function changeLevel(){
@@ -264,16 +254,12 @@ function changeLevel(){
 
 function nextSentence(){
 
-  const sentences =
-    getCurrentSentences();
+  const sentences = getSentences();
 
   currentIndex++;
 
   if(currentIndex >= sentences.length){
-
     currentIndex = 0;
-
-    alert("全ての英文を練習しました！");
   }
 
   loadSentence();
@@ -281,10 +267,10 @@ function nextSentence(){
 
 function speakText(){
 
+  speechSynthesis.cancel();
+
   const text =
     document.getElementById("text").value;
-
-  speechSynthesis.cancel();
 
   const utterance =
     new SpeechSynthesisUtterance(text);
@@ -339,30 +325,31 @@ function generateFeedback(original, spoken){
   const spokenWords =
     spoken.split(/\s+/);
 
-  let missingWords = [];
+  let missing = [];
 
   originalWords.forEach(word=>{
 
     if(!spokenWords.includes(word)){
-
-      missingWords.push(word);
+      missing.push(word);
     }
 
   });
 
-  if(missingWords.length === 0){
+  if(missing.length === 0){
 
-    return "素晴らしい発音です！リズムと流暢さをさらに意識しましょう。";
+    return "素晴らしいです。発音が非常に明瞭です。";
   }
 
-  return (
-    "次の単語をよりはっきり発音してみましょう: " +
-    missingWords.join(", ") +
-    "。単語ごとのアクセントも意識してください。"
-  );
+  return "改善推奨単語: " +
+    missing.join(", ") +
+    "。アクセントと母音を意識してください。";
 }
 
 function startRecognition(){
+
+  if(isRecognizing){
+    return;
+  }
 
   const SpeechRecognition =
     window.SpeechRecognition ||
@@ -370,12 +357,17 @@ function startRecognition(){
 
   if(!SpeechRecognition){
 
-    alert(
-      "このブラウザは音声認識に対応していません。Chromeをご利用ください。"
-    );
+    alert("このブラウザは未対応です");
 
     return;
   }
+
+  isRecognizing = true;
+
+  const button =
+    document.getElementById("recordButton");
+
+  button.disabled = true;
 
   const result =
     document.getElementById("result");
@@ -389,13 +381,10 @@ function startRecognition(){
   const feedback =
     document.getElementById("feedbackText");
 
-  result.innerText =
-    "録音中...";
-
-  status.innerText =
-    "録音中";
-
-  speechSynthesis.cancel();
+  result.innerText = "録音中...";
+  score.innerText = "0%";
+  feedback.innerText = "解析中...";
+  status.innerText = "音声認識中";
 
   const recognition =
     new SpeechRecognition();
@@ -408,8 +397,6 @@ function startRecognition(){
 
   recognition.maxAlternatives = 1;
 
-  recognition.start();
-
   recognition.onresult = function(event){
 
     const spokenText =
@@ -418,71 +405,68 @@ function startRecognition(){
     result.innerText =
       spokenText;
 
-    const targetText =
+    const target =
       document.getElementById("text").value;
 
     const similarity =
       calculateSimilarity(
-        targetText,
+        target,
         spokenText
       );
 
     score.innerText =
       similarity + "%";
 
-    status.innerText =
-      "採点完了";
-
     feedback.innerText =
       generateFeedback(
-        targetText,
+        target,
         spokenText
       );
+
+    status.innerText =
+      "採点完了";
 
     if(similarity >= 85){
 
       status.innerText =
-        "85%以上達成！次の英文へ進みます";
+        "85%以上達成。次へ進みます";
 
       setTimeout(()=>{
 
         nextSentence();
 
-      }, 2000);
+      },1500);
     }
   };
 
   recognition.onerror = function(event){
 
-    console.log(event.error);
-
-    if(event.error === "aborted"){
-
-      result.innerText =
-        "音声認識が中断されました。もう一度試してください。";
-
-      return;
-    }
-
-    if(event.error === "not-allowed"){
-
-      result.innerText =
-        "マイク許可が必要です。";
-
-      return;
-    }
-
-    if(event.error === "no-speech"){
-
-      result.innerText =
-        "音声が検出されませんでした。";
-
-      return;
-    }
-
     result.innerText =
       "エラー: " + event.error;
+
+    status.innerText =
+      "エラー";
   };
+
+  recognition.onend = function(){
+
+    isRecognizing = false;
+
+    button.disabled = false;
+  };
+
+  try{
+
+    recognition.start();
+
+  }catch(e){
+
+    console.log(e);
+
+    isRecognizing = false;
+
+    button.disabled = false;
+  }
 }
 
 loadSentence();
@@ -490,5 +474,4 @@ loadSentence();
 </script>
 
 </body>
-
 </html>
