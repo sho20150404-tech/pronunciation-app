@@ -32,8 +32,8 @@ h1{
 textarea{
   width:100%;
   height:120px;
-  padding:12px;
   font-size:18px;
+  padding:12px;
   border-radius:10px;
   border:1px solid #ccc;
   box-sizing:border-box;
@@ -66,14 +66,14 @@ button{
 
 .result-box{
   margin-top:25px;
-  padding:18px;
   background:#f9fafb;
+  padding:18px;
   border-radius:10px;
   border:1px solid #ddd;
 }
 
 .score{
-  font-size:40px;
+  font-size:42px;
   font-weight:bold;
 }
 
@@ -142,7 +142,7 @@ select{
 
 <div class="result-box">
 
-<h3>認識結果</h3>
+<h3>認識された英文</h3>
 
 <p id="result">
 まだ録音されていません
@@ -206,7 +206,6 @@ const advancedSentences = [
 
 let currentLevel = "beginner";
 let currentIndex = 0;
-
 let isRecognizing = false;
 
 function getSentences(){
@@ -228,6 +227,11 @@ function loadSentence(){
 
   document.getElementById("text").value =
     sentences[currentIndex];
+
+  resetDisplay();
+}
+
+function resetDisplay(){
 
   document.getElementById("result").innerText =
     "まだ録音されていません";
@@ -337,12 +341,12 @@ function generateFeedback(original, spoken){
 
   if(missing.length === 0){
 
-    return "素晴らしいです。発音が非常に明瞭です。";
+    return "素晴らしい発音です。";
+
   }
 
   return "改善推奨単語: " +
-    missing.join(", ") +
-    "。アクセントと母音を意識してください。";
+    missing.join(", ");
 }
 
 function startRecognition(){
@@ -364,10 +368,7 @@ function startRecognition(){
 
   isRecognizing = true;
 
-  const button =
-    document.getElementById("recordButton");
-
-  button.disabled = true;
+  resetDisplay();
 
   const result =
     document.getElementById("result");
@@ -375,18 +376,24 @@ function startRecognition(){
   const score =
     document.getElementById("score");
 
-  const status =
-    document.getElementById("status");
-
   const feedback =
     document.getElementById("feedbackText");
 
-  result.innerText = "録音中...";
-  score.innerText = "0%";
-  feedback.innerText = "解析中...";
-  status.innerText = "音声認識中";
+  const status =
+    document.getElementById("status");
 
-  const recognition =
+  const button =
+    document.getElementById("recordButton");
+
+  button.disabled = true;
+
+  result.innerText =
+    "録音中...";
+
+  status.innerText =
+    "音声認識中";
+
+  let recognition =
     new SpeechRecognition();
 
   recognition.lang = "en-US";
@@ -399,8 +406,11 @@ function startRecognition(){
 
   recognition.onresult = function(event){
 
+    const latestIndex =
+      event.results.length - 1;
+
     const spokenText =
-      event.results[0][0].transcript;
+      event.results[latestIndex][0].transcript;
 
     result.innerText =
       spokenText;
@@ -429,7 +439,7 @@ function startRecognition(){
     if(similarity >= 85){
 
       status.innerText =
-        "85%以上達成。次へ進みます";
+        "85%以上達成";
 
       setTimeout(()=>{
 
@@ -453,6 +463,8 @@ function startRecognition(){
     isRecognizing = false;
 
     button.disabled = false;
+
+    recognition = null;
   };
 
   try{
